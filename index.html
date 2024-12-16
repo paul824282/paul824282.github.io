@@ -15,62 +15,145 @@
     
     <script type="text/processing">
 
-      //SAMPLE PROCESSING CODE -- ENDS LINE 71
-      Ball[] ball;
+PImage biden;
+PImage bg, bg2;
+PImage pipeT, pipeB;
+int bgx;
+int y, Vy;
+int[] px, py; 
+boolean gameState;
+int score = 0;  
+int pipeGap = 200; 
+boolean[] passed; 
 
-      void setup(){
-        size(700, 600);
-        frameRate(100);
-        ball = new Ball[100];
-        for(int i = 0; i < ball.length; i++){
-            ball[i] = new Ball();
-        }
-      }
+void setup(){
+  size(600,600);
+  bg = loadImage("back.png");
+  bg2 = loadImage("back#2.png");
+  y = height / 2;  
+  Vy = 0;
+  biden = loadImage("biden.png");
+  
+  px = new int[3];
+  py = new int[3];
+  passed = new boolean[3]; 
+  
+  for(int i = 0; i < px.length; i++){
+    px[i] = width + (i * (width / 3));  
+    py[i] = int(random(200, height - 200));  
+  }
+  
+  pipeT = loadImage("american flag.png");
+  pipeB = loadImage("american flag#2.png");
+  gameState = true;
+}
+
+void draw(){
+  if(gameState){
+    drawBG();
+    drawBiden();
+    drawPipes();
+    checkCrash();
+    updateScore();
+  } else {
+    displayGameOver();  
+  }
+}
+
+void checkCrash(){
+  if (y <= 0 || y >= height - biden.height) {
+    gameState = false;
+  }
+
+  for(int i = 0; i < px.length; i++){
+    if(px[i] < 55 + biden.width && px[i] > 35 && y - py[i] > 110){
+      gameState = false;
+    }
+    if(px[i] < 55 + biden.width && px[i] > 35 && py[i] - y > 110){
+      gameState = false;
+    }
+  }
+}
+
+void mousePressed(){
+  if (!gameState) {
+    restartGame();
+  } else {
+    Vy = -13;  
+  }
+}
+
+void restartGame(){
+  score = 0;  
+  y = height / 2;  
+  Vy = 0;  
+  for (int i = 0; i < px.length; i++) {
+    px[i] = width + (i * (width / 3));  
+    py[i] = int(random(200, height - 200));  
+    passed[i] = false;  
+  }
+  gameState = true;  
+}
+
+void drawPipes(){
+  for(int i = 0; i < px.length; i++){
+    px[i] -= 3;  
+    
+    image(pipeT, px[i] - 25, py[i] - pipeT.height - 100); 
+    image(pipeB, px[i] - 25, py[i] + pipeGap); 
+    
+    if(px[i] < 35 + biden.width && px[i] > 35 && !passed[i]){
+      score++;  
+      passed[i] = true; 
+    }
+
+    if(px[i] < -pipeT.width){
+      px[i] = width + 50;  
+      py[i] = int(random(100, height - 100)); 
+      passed[i] = false;  
+    }
+  }
+}
 
 
+void drawBiden(){
+  image(biden, 50, y);  
+  y += Vy;  
+  Vy++; 
+  
+  if(y > height - biden.height){ 
+    y = height - biden.height;
+  }
+}
 
-      void draw(){
-          background(155,0,0);
-            for(int i = 0; i < ball.length; i++){
-                ball[i].display();
-            }
+void drawBG(){
+  image(bg, bgx, 0);
+  image(bg2, bgx + bg.width, 0);
+  image(bg, bgx + 2 * bg.width, 0);
+  bgx -= 1;  
+  
+  if(bgx < -2 * bg.width){
+    bgx = 0;
+  }
+}
 
-      }
-      class Ball{
+void updateScore(){
+  fill(255);
+  textSize(32);
+  textAlign(RIGHT);
+  text("Score: " + score, width - 10, 40); 
+}
 
-          float x;
-          float y;
-          float Vx;
-          float Vy;
-          float r,g,b,o;
-          float d;
-
-          Ball(){
-              x = random(width);
-              y = random(height);
-              Vx = random(-5,5);
-              Vy = random(-5,5);
-              r = random(255);
-              g = random(255);
-              b = random(255);
-              o = random(255);
-              d = random(30) + 15;
-          }
-
-          void display(){
-              fill(r,g,b,o);
-              ellipse(x,y,d,d);
-              x += Vx;
-              y += Vy;
-              if(x > width || x < 0){
-                  Vx *= -1;
-              }
-              if(y > height || y < 0){
-                  Vy *= -1;
-              }
-          }
-    }  //END SAMPLE CODE
-
+void displayGameOver(){
+  fill(255, 0, 0);
+  textSize(64);
+  textAlign(CENTER);
+  text("GAME OVER", width / 2, height / 2);
+  textSize(32);
+  text("Score: " + score, width / 2, height / 2 + 50);
+  textSize(24);
+  text("Click to Restart", width / 2, height / 2 + 100);  
+}
 
     </script>
     <canvas id="sketch" style="border: 1px solid black;"></canvas>
